@@ -1,3 +1,9 @@
+# Fork Reason
+Expose preprocess data and not a function so that we can store or use the data later.
+Changes in api
+ - preprocessPolygon, now returns the data needed for the classifier to work
+ - getClassifier(preprocessData), takes as input the preprocessed data and returns the classifier that can be used to classify points
+
 point-in-big-polygon
 ====================
 Industrial scale point-in-polygon test. Given a polygon, this module preprocesses it in O(n log(n)) time such that any point can be classified against the polygon in O(log(n)) operations. All computations are performed in exact arithmetic.
@@ -7,20 +13,15 @@ If you want to use multiple polygons/regions, you should use [point-in-region](h
 # Example
 
 ```javascript
-var preprocessPolygon = require('point-in-big-polygon')
-
-//Define the polygon loops
-var loops = [
+var polygonCompute = require("../pnp-big")
+var preprocessData = polygonCompute.preprocessPolygon([
   [ [-10, -10], [-10, 10], [10, 10], [10, -10] ],
   [ [-1, -1], [1, -1], [1, 1], [-1, 1] ]
-]
+])
 
-//Preprocess it
-var classifyPoint = preprocessPolygon(loops)
-
-//Render polygon test in ASCII to console
+var classifyPoint = polygonCompute.getClassifier(preprocessData);
 var img = []
-for(var y=-12; y<=12; y+=1) {
+for(var y=-12; y<=12; y+=0.5) {
   var row = []
   for(var x=-12; x<=12; x+=0.5) {
     var v = classifyPoint([x, y])
