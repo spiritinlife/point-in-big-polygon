@@ -1,4 +1,7 @@
-module.exports = preprocessPolygon
+module.exports = {
+  preprocessPolygon :preprocessPolygon,
+  getClassifier : getClassifier 
+}
 
 var orient = require('robust-orientation')[3]
 var makeSlabs = require('slab-decomposition')
@@ -39,7 +42,8 @@ function buildVerticalIndex(segments) {
     var segs = table[keys[i]]
     intervalTable[keys[i]] = makeIntervalTree(segs)
   }
-  return intervalSearch(intervalTable)
+  
+  return intervalTable;
 }
 
 function buildSlabSearch(slabs, coordinates) {
@@ -106,6 +110,27 @@ function createClassifyPointDegen(testVertical, testNormal) {
   }
 }
 
+
+function getClassifier(preprocessData) {
+  if (preprocessData.slubs == null) {
+    if (preprocessData.intervalTable == null) {
+      return classifyEmpty;
+    } else {
+      return createClassifyVertical(intervalSearch(preprocessData.intervalTable))
+    }
+  } else {
+    var testSlab = buildSlabSearch(preprocessData.slabs, preprocessData.slabs.coordinates)
+    if (preprocessData.intervalTable == null) {
+      return testSlab;
+    } else {
+      return createClassifyPointDegen(
+     intervalSearch(preprocessData.intervalTable),
+      testSlab)
+    }
+  }
+}
+
+
 function preprocessPolygon(loops) {
   //Compute number of loops
   var numLoops = loops.length
@@ -131,21 +156,30 @@ function preprocessPolygon(loops) {
   //Degenerate case: All loops are empty
   if(segments.length === 0) {
     if(vsegments.length === 0) {
-      return classifyEmpty
+      return {
+        intervalTable : null,
+        slabs : null
+      }
     } else {
-      return createClassifyVertical(buildVerticalIndex(vsegments))
+      return {
+        intervalTable : buildVerticalIndex(vsegments),
+        slabs : null
+      }
     }
   }
 
   //Build slab decomposition
   var slabs = makeSlabs(segments)
-  var testSlab = buildSlabSearch(slabs.slabs, slabs.coordinates)
 
   if(vsegments.length === 0) {
-    return testSlab
+    return {
+       intervalTable : null,
+       slabs : slabs
+    }
   } else {
-    return createClassifyPointDegen(
-      buildVerticalIndex(vsegments),
-      testSlab)
+   return {
+       intervalTable : buildVerticalIndex(vsegments),
+       slabs : slabs
+    }
   }
 }

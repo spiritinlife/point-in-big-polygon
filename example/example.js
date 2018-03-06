@@ -1,9 +1,10 @@
-var preprocessPolygon = require("point-in-big-polygon")
-var classifyPoint = preprocessPolygon([
+var polygonCompute = require("../pnp-big")
+var preprocessData = polygonCompute.preprocessPolygon([
   [ [-10, -10], [-10, 10], [10, 10], [10, -10] ],
   [ [-1, -1], [1, -1], [1, 1], [-1, 1] ]
 ])
 
+var classifyPoint = polygonCompute.getClassifier(preprocessData);
 var img = []
 for(var y=-12; y<=12; y+=0.5) {
   var row = []
